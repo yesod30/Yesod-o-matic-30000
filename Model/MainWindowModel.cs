@@ -178,16 +178,19 @@ namespace Yesod_o_matic_30000.Model
                                 {
                                     var data = line.Split("\t");
                                     var shipID = data[0];
-                                    var shipData = shipNames[shipID];
-                                    string name = shipData.Name;
-                                    string players = data[1];
-                                    if (!(name.Contains("[") || int.Parse(players) == 0 || name.Contains("(old)")))
+                                    if (shipNames.ContainsKey(shipID))
                                     {
-                                        string tier = shipData.Tier;
-                                        string type = shipData.Type;
-                                        string potential = (int.Parse(data[14]) + int.Parse(data[15])).ToString();
-                                        ShipStat stats = new ShipStat(name, tier, type, players, data[2], data[4], data[13], data[8], data[9], data[10], data[11], data[12], data[7], potential, data[16]);
-                                        list.Add(stats);
+                                        var shipData = shipNames[shipID];
+                                        string name = shipData.Name;
+                                        string players = data[1];
+                                        if (!(name.Contains("[") || int.Parse(players) == 0 || name.Contains("(old)")))
+                                        {
+                                            string tier = shipData.Tier;
+                                            string type = shipData.Type;
+                                            string potential = (int.Parse(data[14]) + int.Parse(data[15])).ToString();
+                                            ShipStat stats = new ShipStat(name, tier, type, players, data[2], data[4], data[13], data[8], data[9], data[10], data[11], data[12], data[7], potential, data[16]);
+                                            list.Add(stats);
+                                        }
                                     }
                                 }
                                 FullList = list;
