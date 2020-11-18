@@ -18,12 +18,14 @@ namespace Yesod_o_matic_30000.Model
         public MainWindowModel()
         {
             shipNames = getShipsDictionary();
+            ShouldResetFilters = false;
             MinTier = 1;
             MaxTier = 10;
             DD = true;
             CA = true;
             BB = true;
             CV = true;
+            Search = "";
         }
 
         private string _fileName;
@@ -123,6 +125,13 @@ namespace Yesod_o_matic_30000.Model
                 }
         }
 
+        private bool _shouldResetFilters;
+        public bool ShouldResetFilters
+        {
+            get => _shouldResetFilters;
+            set => SetProperty(ref _shouldResetFilters, value);
+        }
+
         private DelegateCommand _openFile;
 
         public DelegateCommand OpenFile
@@ -182,9 +191,8 @@ namespace Yesod_o_matic_30000.Model
                                     }
                                 }
                                 FullList = list;
-                                ShipStats = list;
-
-                                resetFilters();
+                                ResetFilters();
+                                ShipStats = ApplyFilters();
                             }
                         }
                         else
@@ -200,24 +208,26 @@ namespace Yesod_o_matic_30000.Model
                                     {
                                         var data = line.Split("\t");
                                         var shipID = data[0];
-                                        var shipData = shipNames[shipID];
-                                        string name = shipData.Name;
-                                        string players = data[1];
-                                        if (!(name.Contains("[") || int.Parse(players) == 0 || name.Contains("(old)")))
+                                        if (shipNames.ContainsKey(shipID))
                                         {
-                                            string tier = shipData.Tier;
-                                            string type = shipData.Type;
-                                            string potential = (int.Parse(data[14]) + int.Parse(data[15])).ToString();
-                                            ShipStat stats = new ShipStat(name, tier, type, players, data[2], data[4], data[13], data[8], data[9], data[10], data[11], data[12], data[7], potential, data[16]);
-                                            list.Add(stats);
+                                            var shipData = shipNames[shipID];
+                                            string name = shipData.Name;
+                                            string players = data[1];
+                                            if (!(name.Contains("[") || int.Parse(players) == 0 || name.Contains("(old)")))
+                                            {
+                                                string tier = shipData.Tier;
+                                                string type = shipData.Type;
+                                                string potential = (int.Parse(data[14]) + int.Parse(data[15])).ToString();
+                                                ShipStat stats = new ShipStat(name, tier, type, players, data[2], data[4], data[13], data[8], data[9], data[10], data[11], data[12], data[7], potential, data[16]);
+                                                list.Add(stats);
+                                            } 
                                         }
                                     }
                                 }
 
                                 FullList = list;
-                                ShipStats = list;
-
-                                resetFilters();
+                                ResetFilters();
+                                ShipStats = ApplyFilters();
                             }
                             catch (Exception)
                             {
@@ -282,15 +292,25 @@ namespace Yesod_o_matic_30000.Model
             return respect;
         }
 
-        private void resetFilters()
+        private void ResetFilters()
         {
-            Search = "";
-            MinTier = 1;
-            MaxTier = 10;
-            DD = true;
-            CA = true;
-            BB = true;
-            CV = true;
+            if (ShouldResetFilters)
+            {
+                Search = "";
+                MinTier = 1;
+                MaxTier = 10;
+                DD = true;
+                CA = true;
+                BB = true;
+                CV = true;
+            }
+        }
+
+        private List<ShipStat> ApplyFilters()
+        {
+            var filteredList = FullList.Where(x => x.Ship.Contains(Search, StringComparison.OrdinalIgnoreCase) && (x.Tier >= MinTier) && (x.Tier <= MaxTier) && RespectClassFilter(x.Class)).ToList();
+            var searchedList = filteredList.Where(x => x.Ship.Contains(Search, StringComparison.OrdinalIgnoreCase) && (x.Tier >= MinTier) && (x.Tier <= MaxTier) && RespectClassFilter(x.Class)).ToList();
+            return searchedList;
         }
     }
 }
