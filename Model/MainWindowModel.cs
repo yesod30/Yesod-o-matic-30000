@@ -255,7 +255,8 @@ namespace Yesod_o_matic_30000.Model
                 {
                     var data = line.Split("\t");
                     ShipData shipData = new ShipData(data[1], data[2], data[4]);
-                    shipNames.Add(data[0], shipData);
+                    if (!shipNames.ContainsKey(data[0]))
+                        shipNames.Add(data[0], shipData);
                 }
             }
             return shipNames;
